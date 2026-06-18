@@ -1,152 +1,325 @@
 @startuml
+title Diagrama de Classes UML - Sistema de Checkout de Supermercado
+
 skinparam classAttributeIconSize 0
 
-class Main {
-  +main(args : String[]) : void
-}
-
-class MenuConsole {
-  -produtoRepository : RepositorioProduto
-  -vendaRepository : RepositorioVenda
-  -relatorioDescontosService : RelatorioDescontosService
-  -leitorEntrada : LeitorEntrada
-  -validadorVenda : ValidadorVenda
-  +executar() : void
-}
-
-interface RepositorioProduto {
-  +salvarProduto(produto : Produto) : void
-  +salvarTodosProdutos(produtos : List<Produto>) : void
-  +carregarTodosProdutos() : List<Produto>
-  +buscarProdutoPorCodigo(codigo : String) : Produto
-  +buscarPorNomeParcial(termoBusca : String) : List<Produto>
-}
-
-interface RepositorioVenda {
-  +gerarProximoIdVenda() : int
-  +salvarVenda(venda : Venda) : void
-  +salvarItensVenda(venda : Venda) : void
-  +salvarDescontosVenda(venda : Venda) : void
-  +listarVendasSalvas() : List<Venda>
-}
-
 abstract class Produto {
-  -codigo : String
-  -nome : String
-  -precoBase : double
-  -estoque : int
-  +getCodigo() : String
-  +getNome() : String
-  +getPrecoBase() : double
-  +getEstoque() : int
-  +setEstoque(estoque : int) : void
-  +reduzirEstoque(quantidade : int) : boolean
-  +adicionarEstoque(quantidade : int) : void
-  #formatarMoeda(valor : double) : String
-  +calcularPrecoFinal() : double
-  +getTipo() : String
-}
+
+* codigo: String
+* nome: String
+* precoBase: double
+* estoque: int
+
+- Produto(codigo: String, nome: String, precoBase: double)
+- Produto(codigo: String, nome: String, precoBase: double, estoque: int)
+- getCodigo(): String
+- getNome(): String
+- getPrecoBase(): double
+- getEstoque(): int
+- setEstoque(estoque: int): void
+- reduzirEstoque(quantidade: int): boolean
+- adicionarEstoque(quantidade: int): void
+
+# formatarMoeda(valor: double): String
+
+* calcularPrecoFinal(): double
+* getTipo(): String
+  }
 
 class ProdutoPerecivel {
-  -dataVencimento : LocalDate
-  -diasParaVencer : int
-  +calcularPrecoFinal() : double
-  +getTipo() : String
-}
+
+* dataVencimento: LocalDate
+* diasParaVencer: int
+
+- ProdutoPerecivel(codigo: String, nome: String, precoBase: double, dataVencimento: LocalDate)
+- ProdutoPerecivel(codigo: String, nome: String, precoBase: double, estoque: int, dataVencimento: LocalDate)
+- getDataVencimento(): LocalDate
+- getDiasParaVencer(): int
+- calcularPrecoFinal(): double
+- getTipo(): String
+  }
 
 class ProdutoLimpeza {
-  -fragrancia : String
-  +calcularPrecoFinal() : double
-  +getTipo() : String
-}
 
-class CarrinhoDeCompras {
-  -itens : List<ItemCarrinho>
-  +adicionarItem(produto : Produto, quantidade : int) : void
-  +getItens() : List<ItemCarrinho>
-  +fecharCompra(idVenda : int, dataHora : LocalDateTime) : Venda
-}
+* fragrancia: String
+
+- ProdutoLimpeza(codigo: String, nome: String, precoBase: double, fragrancia: String)
+- ProdutoLimpeza(codigo: String, nome: String, precoBase: double, estoque: int, fragrancia: String)
+- getFragrancia(): String
+- calcularPrecoFinal(): double
+- getTipo(): String
+  }
+
+ProdutoPerecivel --|> Produto
+ProdutoLimpeza --|> Produto
 
 class ItemCarrinho {
-  -produto : Produto
-  -quantidade : int
-  -subtotalBruto : double
-  -descontoAplicado : double
-  -subtotalFinal : double
-  -tipoDescontoAplicado : String
-  +calcularSubtotal() : double
-}
+
+* produto: Produto
+* quantidade: int
+* subtotalBruto: double
+* descontoAplicado: double
+* subtotalFinal: double
+* tipoDescontoAplicado: String
+
+- ItemCarrinho(produto: Produto, quantidade: int)
+- getProduto(): Produto
+- getQuantidade(): int
+- getSubtotalBruto(): double
+- getDescontoAplicado(): double
+- getSubtotalFinal(): double
+- getTipoDescontoAplicado(): String
+- calcularSubtotal(): double
+
+* formatarMoeda(valor: double): String
+  }
+
+class CarrinhoDeCompras {
+
+* itens: List<ItemCarrinho>
+
+- CarrinhoDeCompras()
+- adicionarItem(produto: Produto, quantidade: int): void
+- getItens(): List<ItemCarrinho>
+- fecharCompra(idVenda: int, dataHora: LocalDateTime): Venda
+- fecharCompra(): Venda
+
+* formatarMoeda(valor: double): String
+  }
 
 class Venda {
-  -idVenda : int
-  -dataHora : LocalDateTime
-  -itens : List<ItemCarrinho>
-  -totalBruto : double
-  -totalDescontos : double
-  -totalFinal : double
-  -cupomFiscal : String
-  +gerarCupomFiscal() : String
-}
+
+* idVenda: int
+* dataHora: LocalDateTime
+* itens: List<ItemCarrinho>
+* totalBruto: double
+* totalDescontos: double
+* totalFinal: double
+* cupomFiscal: String
+
+- Venda(idVenda: int, dataHora: LocalDateTime, itens: List<ItemCarrinho>, totalBruto: double, totalDescontos: double, totalFinal: double, cupomFiscal: String)
+- getIdVenda(): int
+- getDataHora(): LocalDateTime
+- getItens(): List<ItemCarrinho>
+- getTotalBruto(): double
+- getTotalDescontos(): double
+- getTotalFinal(): double
+- getCupomFiscal(): String
+- gerarCupomFiscal(): String
+  }
+
+ItemCarrinho o-- Produto : agregacao
+CarrinhoDeCompras *-- ItemCarrinho : composicao
+Venda *-- ItemCarrinho : composicao
+
+interface RepositorioProduto {
+
+* salvarProduto(produto: Produto): void
+* salvarTodosProdutos(produtos: List<Produto>): void
+* carregarTodosProdutos(): List<Produto>
+* buscarProdutoPorCodigo(codigo: String): Produto
+* buscarPorNomeParcial(termoBusca: String): List<Produto>
+  }
+
+interface RepositorioVenda {
+
+* gerarProximoIdVenda(): int
+* salvarVenda(venda: Venda): void
+* salvarItensVenda(venda: Venda): void
+* salvarDescontosVenda(venda: Venda): void
+* listarVendasSalvas(): List<Venda>
+  }
 
 class ProdutoRepository {
-  +salvarProduto(produto : Produto) : void
-  +salvarTodosProdutos(produtos : List<Produto>) : void
-  +carregarTodosProdutos() : List<Produto>
-  +buscarProdutoPorCodigo(codigo : String) : Produto
-  +buscarPorNomeParcial(termoBusca : String) : List<Produto>
-}
+
+* DIRETORIO_DADOS: Path
+* ARQUIVO_PRODUTOS: Path
+
+- ProdutoRepository()
+
+* garantirEstrutura(): void
+
+- salvarProduto(produto: Produto): void
+- salvarTodosProdutos(produtos: List<Produto>): void
+- carregarTodosProdutos(): List<Produto>
+- buscarProdutoPorCodigo(codigo: String): Produto
+- buscarPorNomeParcial(termoBusca: String): List<Produto>
+
+* criarProdutoDaLinha(linha: String): Produto
+* formatarLinhaProduto(produto: Produto): String
+  }
 
 class VendaRepository {
-  +gerarProximoIdVenda() : int
-  +salvarVenda(venda : Venda) : void
-  +salvarItensVenda(venda : Venda) : void
-  +salvarDescontosVenda(venda : Venda) : void
-  +listarVendasSalvas() : List<Venda>
-}
 
-class RelatorioDescontosService {
-  +exibirRelatorio() : void
-}
+* DIRETORIO_DADOS: Path
+* ARQUIVO_VENDAS: Path
+* ARQUIVO_ITENS: Path
+* ARQUIVO_DESCONTOS: Path
+* FORMATO_DATA: DateTimeFormatter
 
-class LeitorEntrada {
-  +lerTexto(mensagem : String) : String
-  +lerInteiro(mensagem : String) : int
-  +lerDouble(mensagem : String) : double
-  +lerData(mensagem : String) : LocalDate
-}
+- VendaRepository()
 
-class ValidadorVenda {
-  +buscarProdutoOuFalhar(produtos : List<Produto>, codigo : String) : Produto
-  +validarQuantidade(produto : Produto, quantidade : int) : void
-}
+* garantirEstrutura(): void
 
-class SistemaCheckoutException
-class ProdutoNaoEncontradoException
-class QuantidadeInvalidaException
-class EstoqueInsuficienteException
+- gerarProximoIdVenda(): int
+- salvarVenda(venda: Venda): void
+- salvarItensVenda(venda: Venda): void
+- salvarDescontosVenda(venda: Venda): void
+- listarVendasSalvas(): List<Venda>
 
-class RoteiroTestesEstresse {
-  +main(args : String[]) : void
-}
+* formatarNumero(valor: double): String
+  }
 
-Produto <|-- ProdutoPerecivel
-Produto <|-- ProdutoLimpeza
 ProdutoRepository ..|> RepositorioProduto
 VendaRepository ..|> RepositorioVenda
-ItemCarrinho o-- Produto
-CarrinhoDeCompras *-- ItemCarrinho
-Venda *-- ItemCarrinho
-MenuConsole ..> RepositorioProduto
-MenuConsole ..> RepositorioVenda
-MenuConsole ..> RelatorioDescontosService
-MenuConsole ..> LeitorEntrada
-MenuConsole ..> ValidadorVenda
-SistemaCheckoutException <|-- ProdutoNaoEncontradoException
-SistemaCheckoutException <|-- QuantidadeInvalidaException
-SistemaCheckoutException <|-- EstoqueInsuficienteException
+
+ProdutoRepository ..> Produto
+VendaRepository ..> Venda
+VendaRepository ..> ItemCarrinho
+
+class RelatorioDescontosService {
+
+* DIRETORIO_DADOS: Path
+* ARQUIVO_DESCONTOS: Path
+
+- RelatorioDescontosService()
+
+* garantirEstrutura(): void
+
+- exibirRelatorio(): void
+
+* formatarMoeda(valor: double): String
+  }
+
+class LeitorEntrada {
+
+* scanner: Scanner
+
+- LeitorEntrada()
+- lerTexto(mensagem: String): String
+- lerInteiro(mensagem: String): int
+- lerDouble(mensagem: String): double
+- lerData(mensagem: String): LocalDate
+  }
+
+class ValidadorVenda {
+
+* buscarProdutoOuFalhar(produtos: List<Produto>, codigo: String): Produto
+* validarQuantidade(produto: Produto, quantidade: int): void
+  }
+
+class SeedDados {
+
+* DIRETORIO_DADOS: Path
+* ARQUIVO_PRODUTOS: Path
+* ARQUIVO_VENDAS: Path
+* ARQUIVO_ITENS_VENDA: Path
+* ARQUIVO_DESCONTOS: Path
+* SeedDados()
+
+- executar(): void
+
+* garantirEstrutura(): void
+* gerarProdutos(): List<ProdutoSeed>
+* escreverArquivo(arquivo: Path, linhas: List<String>): void
+  }
+
+class MenuConsole {
+
+* produtoRepository: ProdutoRepository
+* vendaRepository: VendaRepository
+* relatorioDescontosService: RelatorioDescontosService
+* leitorEntrada: LeitorEntrada
+* validadorVenda: ValidadorVenda
+
+- MenuConsole()
+- executar(): void
+
+* exibirMenu(): void
+* listarProdutos(): void
+* buscarProdutoPorNome(): void
+* cadastrarProdutoPerecivel(): void
+* cadastrarProdutoLimpeza(): void
+* iniciarNovaVenda(): void
+* listarVendas(): void
+* buscarProdutoNaLista(produtos: List<Produto>, codigo: String): Produto
+* buscarProdutosDentroDaVenda(): void
+* exibirTabelaProdutos(produtos: List<Produto>): void
+* confirmarEGerarSeed(): void
+* formatarMoeda(valor: double): String
+  }
+
+class Main {
+
+* main(args: String[]): void
+  }
+
+class RoteiroTestesEstresse {
+
+* main(args: String[]): void
+  }
+
+MenuConsole *-- ProdutoRepository
+MenuConsole *-- VendaRepository
+MenuConsole *-- RelatorioDescontosService
+MenuConsole *-- LeitorEntrada
+MenuConsole *-- ValidadorVenda
+
+MenuConsole ..> Produto
+MenuConsole ..> ProdutoPerecivel
+MenuConsole ..> ProdutoLimpeza
+MenuConsole ..> CarrinhoDeCompras
+MenuConsole ..> Venda
+MenuConsole ..> SeedDados
+
+Main ..> MenuConsole
 RoteiroTestesEstresse ..> ValidadorVenda
+RoteiroTestesEstresse ..> Produto
 RoteiroTestesEstresse ..> CarrinhoDeCompras
-RoteiroTestesEstresse ..> ProdutoPerecivel
-RoteiroTestesEstresse ..> ProdutoLimpeza
+
+class SistemaCheckoutException {
+
+* SistemaCheckoutException(mensagem: String)
+  }
+
+class ProdutoNaoEncontradoException {
+
+* ProdutoNaoEncontradoException(mensagem: String)
+  }
+
+class EstoqueInsuficienteException {
+
+* EstoqueInsuficienteException(mensagem: String)
+  }
+
+class QuantidadeInvalidaException {
+
+* QuantidadeInvalidaException(mensagem: String)
+  }
+
+SistemaCheckoutException --|> RuntimeException
+ProdutoNaoEncontradoException --|> SistemaCheckoutException
+EstoqueInsuficienteException --|> SistemaCheckoutException
+QuantidadeInvalidaException --|> SistemaCheckoutException
+
+ValidadorVenda ..> ProdutoNaoEncontradoException
+ValidadorVenda ..> EstoqueInsuficienteException
+ValidadorVenda ..> QuantidadeInvalidaException
+MenuConsole ..> SistemaCheckoutException
+
+legend right
+
+* publico
+
+- privado
+
+# protegido
+
+--|> heranca
+..|> implementacao de interface
+o-- agregacao
+*-- composicao
+..> dependencia
+endlegend
 
 @enduml

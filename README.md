@@ -242,3 +242,66 @@ TOTAL FINAL                 R$ 30,86
 
 ## Observacoes
 O projeto continua simples e didatico, sem banco de dados e sem framework, para ficar adequado a uma apresentacao de POO com persistencia basica em arquivo.
+
+## Decisões de Design e Tratamento de Erros
+
+Esta seção apresenta as principais decisões de design adotadas no desenvolvimento do sistema de checkout de supermercado, especialmente em relação ao uso de classe abstrata, polimorfismo e exceções customizadas.
+
+### 1. Por que a classe `Produto` foi definida como abstrata e não como interface?
+
+A classe `Produto` foi definida como abstrata porque representa uma base comum para todos os produtos do sistema. Todo produto, independentemente de sua categoria, possui informações compartilhadas, como código, nome, preço base e estoque.
+
+Esses dados são atributos internos do objeto e precisam ser reaproveitados pelas classes filhas. Por isso, uma classe abstrata é mais adequada do que uma interface nesse caso. Uma interface serviria principalmente para definir métodos obrigatórios, mas não seria a melhor escolha para centralizar atributos e comportamentos comuns.
+
+No projeto, `Produto` possui atributos privados, métodos públicos de acesso e métodos comuns, como controle de estoque e formatação de moeda. Ao mesmo tempo, ela mantém métodos abstratos, como `calcularPrecoFinal()` e `getTipo()`, obrigando cada subclasse a implementar sua própria regra.
+
+As classes `ProdutoPerecivel` e `ProdutoLimpeza` herdam de `Produto`, mas cada uma calcula o preço final de maneira diferente. Assim, a classe abstrata permite reaproveitamento de código e, ao mesmo tempo, garante especialização nas subclasses.
+
+### 2. Como funciona o polimorfismo no método `ItemCarrinho.calcularSubtotal()`?
+
+O polimorfismo aparece no método `calcularSubtotal()` da classe `ItemCarrinho`.
+
+A classe `ItemCarrinho` possui um atributo do tipo `Produto`. Isso significa que ela trabalha com a referência genérica da classe abstrata, sem precisar saber inicialmente se o objeto real é um `ProdutoPerecivel` ou um `ProdutoLimpeza`.
+
+Durante a execução, o método chama:
+
+```java
+produto.calcularPrecoFinal();
+```
+
+Mesmo a variável sendo do tipo `Produto`, o Java identifica em tempo de execução qual é a classe real do objeto. Se o produto adicionado ao carrinho for um `ProdutoPerecivel`, será executado o método `calcularPrecoFinal()` da classe `ProdutoPerecivel`. Se for um `ProdutoLimpeza`, será executado o método sobrescrito em `ProdutoLimpeza`.
+
+Esse comportamento demonstra polimorfismo porque o mesmo comando gera comportamentos diferentes, dependendo do tipo real do objeto.
+
+O fluxo pode ser explicado assim:
+
+1. O usuário adiciona um produto ao carrinho.
+2. O carrinho cria um `ItemCarrinho` com uma referência do tipo `Produto`.
+3. Ao calcular o subtotal, `ItemCarrinho` chama `produto.calcularPrecoFinal()`.
+4. Em tempo de execução, o Java decide qual versão do método será executada.
+5. O preço final é calculado conforme a regra específica da subclasse.
+
+Com isso, o carrinho não precisa conhecer todos os detalhes das categorias de produto. Ele apenas chama o método definido na classe abstrata, e cada subclasse responde de acordo com sua própria regra de negócio.
+
+### 3. Cenário de teste que dispara a exceção customizada `EstoqueInsuficienteException`
+
+A exceção customizada `EstoqueInsuficienteException` é disparada quando o usuário tenta vender uma quantidade maior do que o estoque disponível de determinado produto.
+
+Exemplo de cenário:
+
+* Produto selecionado: `Detergente Neutro`
+* Estoque disponível: `4 unidades`
+* Quantidade solicitada na venda: `10 unidades`
+* Resultado esperado: disparo da exceção `EstoqueInsuficienteException`
+
+Esse erro representa uma regra de negócio importante. Um sistema de supermercado não pode permitir que uma venda seja concluída com quantidade superior ao estoque disponível.
+
+Por isso, foi criada uma exceção customizada específica para esse caso. Essa exceção deixa o erro mais claro, melhora a organização do código e evita que o sistema trate todos os problemas como erros genéricos.
+
+No fluxo da venda, a validação é feita antes de o produto ser adicionado ao carrinho. Quando a quantidade informada é maior do que o estoque, o sistema lança a exceção customizada. Em seguida, o `MenuConsole` captura essa exceção por meio da classe base `SistemaCheckoutException`, exibe uma mensagem ao usuário e permite que o sistema continue funcionando normalmente.
+
+Esse tratamento é importante porque demonstra robustez. O sistema não quebra diante de uma entrada inválida, mas também não permite que uma venda incorreta seja registrada.
+
+Além da `EstoqueInsuficienteException`, o projeto também possui outras exceções customizadas, como `ProdutoNaoEncontradoException` e `QuantidadeInvalidaException`, usadas para tratar outros cenários de falha no fluxo de venda.
+
+Dessa forma, o tratamento de erros foi implementado de maneira orientada a objetos, separando as regras de validação da interface do menu e tornando o código mais organizado, legível e seguro.
