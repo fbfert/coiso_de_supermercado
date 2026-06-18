@@ -14,7 +14,7 @@ import java.util.Locale;
 /*
  * Responsavel pela persistencia de vendas, itens e descontos.
  */
-public class VendaRepository {
+public class VendaRepository implements RepositorioVenda {
     private static final Path DIRETORIO_DADOS = Paths.get("dados");
     private static final Path ARQUIVO_VENDAS = DIRETORIO_DADOS.resolve("vendas.txt");
     private static final Path ARQUIVO_ITENS = DIRETORIO_DADOS.resolve("itens_venda.txt");

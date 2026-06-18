@@ -14,16 +14,18 @@ import java.util.Locale;
  */
 public class MenuConsole {
     private static final DateTimeFormatter FORMATO_DATA_HORA = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-    private ProdutoRepository produtoRepository;
-    private VendaRepository vendaRepository;
+    private RepositorioProduto produtoRepository;
+    private RepositorioVenda vendaRepository;
     private RelatorioDescontosService relatorioDescontosService;
     private LeitorEntrada leitorEntrada;
+    private ValidadorVenda validadorVenda;
 
     public MenuConsole() {
         this.produtoRepository = new ProdutoRepository();
         this.vendaRepository = new VendaRepository();
         this.relatorioDescontosService = new RelatorioDescontosService();
         this.leitorEntrada = new LeitorEntrada();
+        this.validadorVenda = new ValidadorVenda();
     }
 
     public void executar() {
@@ -171,28 +173,20 @@ public class MenuConsole {
                 continue;
             }
 
-            Produto produto = buscarProdutoNaLista(produtos, codigo);
-            if (produto == null) {
-                System.out.println("Produto nao encontrado.");
-                continue;
+            try {
+                Produto produto = validadorVenda.buscarProdutoOuFalhar(produtos, codigo);
+
+                System.out.println("Produto encontrado. Criando objeto da subclasse correta...");
+                System.out.println("Referencia base Produto apontando para objeto real " + produto.getClass().getSimpleName() + ".");
+
+                int quantidade = leitorEntrada.lerInteiro("Quantidade: ");
+                validadorVenda.validarQuantidade(produto, quantidade);
+
+                produto.reduzirEstoque(quantidade);
+                carrinho.adicionarItem(produto, quantidade);
+            } catch (SistemaCheckoutException e) {
+                System.out.println(e.getMessage());
             }
-
-            System.out.println("Produto encontrado. Criando objeto da subclasse correta...");
-            System.out.println("Referencia base Produto apontando para objeto real " + produto.getClass().getSimpleName() + ".");
-
-            int quantidade = leitorEntrada.lerInteiro("Quantidade: ");
-            if (quantidade <= 0) {
-                System.out.println("Quantidade invalida.");
-                continue;
-            }
-
-            if (quantidade > produto.getEstoque()) {
-                System.out.println("Estoque insuficiente. Estoque atual: " + produto.getEstoque());
-                continue;
-            }
-
-            produto.reduzirEstoque(quantidade);
-            carrinho.adicionarItem(produto, quantidade);
         }
 
         if (carrinho.getItens().isEmpty()) {
@@ -233,15 +227,6 @@ public class MenuConsole {
                     formatarMoeda(venda.getTotalDescontos()),
                     formatarMoeda(venda.getTotalFinal()));
         }
-    }
-
-    private Produto buscarProdutoNaLista(List<Produto> produtos, String codigo) {
-        for (Produto produto : produtos) {
-            if (produto.getCodigo().equalsIgnoreCase(codigo)) {
-                return produto;
-            }
-        }
-        return null;
     }
 
     private void buscarProdutosDentroDaVenda() {

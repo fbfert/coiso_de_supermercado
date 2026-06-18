@@ -52,6 +52,11 @@ Exemplos de mensagens exibidas:
 - `Referencia base Produto apontando para objeto real ProdutoPerecivel.`
 - `Chamando calcularPrecoFinal() de forma polimorfica...`
 
+## Decisões de Design e Tratamento de Erros
+1. `Produto` foi definida como classe abstrata porque existe um comportamento comum a todas as categorias, mas o preco final e o tipo do produto dependem da subclasse. Uma interface nao guardaria estado compartilhado como `codigo`, `nome`, `precoBase` e `estoque`.
+2. Em `ItemCarrinho.calcularSubtotal()`, o sistema trabalha com uma referencia do tipo `Produto`, mas o objeto real pode ser `ProdutoPerecivel` ou `ProdutoLimpeza`. Quando `calcularPrecoFinal()` e chamado, o Java usa o metodo da subclasse concreta, e isso permite aplicar regras diferentes sem mudar o carrinho.
+3. `EstoqueInsuficienteException` e disparada quando a quantidade solicitada e maior que o estoque do produto. Ela e necessaria porque a regra de negocio nao permite vender mais unidades do que existem, e o tratamento por excecao evita seguir o fluxo com um estado invalido.
+
 ## Descontos
 As regras de desconto continuam separadas por categoria:
 

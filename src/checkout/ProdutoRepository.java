@@ -12,7 +12,7 @@ import java.util.List;
 /*
  * Responsavel pela persistencia simples de produtos em arquivo TXT.
  */
-public class ProdutoRepository {
+public class ProdutoRepository implements RepositorioProduto {
     private static final Path DIRETORIO_DADOS = Paths.get("dados");
     private static final Path ARQUIVO_PRODUTOS = DIRETORIO_DADOS.resolve("produtos.txt");
 

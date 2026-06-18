@@ -1,0 +1,152 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+class Main {
+  +main(args : String[]) : void
+}
+
+class MenuConsole {
+  -produtoRepository : RepositorioProduto
+  -vendaRepository : RepositorioVenda
+  -relatorioDescontosService : RelatorioDescontosService
+  -leitorEntrada : LeitorEntrada
+  -validadorVenda : ValidadorVenda
+  +executar() : void
+}
+
+interface RepositorioProduto {
+  +salvarProduto(produto : Produto) : void
+  +salvarTodosProdutos(produtos : List<Produto>) : void
+  +carregarTodosProdutos() : List<Produto>
+  +buscarProdutoPorCodigo(codigo : String) : Produto
+  +buscarPorNomeParcial(termoBusca : String) : List<Produto>
+}
+
+interface RepositorioVenda {
+  +gerarProximoIdVenda() : int
+  +salvarVenda(venda : Venda) : void
+  +salvarItensVenda(venda : Venda) : void
+  +salvarDescontosVenda(venda : Venda) : void
+  +listarVendasSalvas() : List<Venda>
+}
+
+abstract class Produto {
+  -codigo : String
+  -nome : String
+  -precoBase : double
+  -estoque : int
+  +getCodigo() : String
+  +getNome() : String
+  +getPrecoBase() : double
+  +getEstoque() : int
+  +setEstoque(estoque : int) : void
+  +reduzirEstoque(quantidade : int) : boolean
+  +adicionarEstoque(quantidade : int) : void
+  #formatarMoeda(valor : double) : String
+  +calcularPrecoFinal() : double
+  +getTipo() : String
+}
+
+class ProdutoPerecivel {
+  -dataVencimento : LocalDate
+  -diasParaVencer : int
+  +calcularPrecoFinal() : double
+  +getTipo() : String
+}
+
+class ProdutoLimpeza {
+  -fragrancia : String
+  +calcularPrecoFinal() : double
+  +getTipo() : String
+}
+
+class CarrinhoDeCompras {
+  -itens : List<ItemCarrinho>
+  +adicionarItem(produto : Produto, quantidade : int) : void
+  +getItens() : List<ItemCarrinho>
+  +fecharCompra(idVenda : int, dataHora : LocalDateTime) : Venda
+}
+
+class ItemCarrinho {
+  -produto : Produto
+  -quantidade : int
+  -subtotalBruto : double
+  -descontoAplicado : double
+  -subtotalFinal : double
+  -tipoDescontoAplicado : String
+  +calcularSubtotal() : double
+}
+
+class Venda {
+  -idVenda : int
+  -dataHora : LocalDateTime
+  -itens : List<ItemCarrinho>
+  -totalBruto : double
+  -totalDescontos : double
+  -totalFinal : double
+  -cupomFiscal : String
+  +gerarCupomFiscal() : String
+}
+
+class ProdutoRepository {
+  +salvarProduto(produto : Produto) : void
+  +salvarTodosProdutos(produtos : List<Produto>) : void
+  +carregarTodosProdutos() : List<Produto>
+  +buscarProdutoPorCodigo(codigo : String) : Produto
+  +buscarPorNomeParcial(termoBusca : String) : List<Produto>
+}
+
+class VendaRepository {
+  +gerarProximoIdVenda() : int
+  +salvarVenda(venda : Venda) : void
+  +salvarItensVenda(venda : Venda) : void
+  +salvarDescontosVenda(venda : Venda) : void
+  +listarVendasSalvas() : List<Venda>
+}
+
+class RelatorioDescontosService {
+  +exibirRelatorio() : void
+}
+
+class LeitorEntrada {
+  +lerTexto(mensagem : String) : String
+  +lerInteiro(mensagem : String) : int
+  +lerDouble(mensagem : String) : double
+  +lerData(mensagem : String) : LocalDate
+}
+
+class ValidadorVenda {
+  +buscarProdutoOuFalhar(produtos : List<Produto>, codigo : String) : Produto
+  +validarQuantidade(produto : Produto, quantidade : int) : void
+}
+
+class SistemaCheckoutException
+class ProdutoNaoEncontradoException
+class QuantidadeInvalidaException
+class EstoqueInsuficienteException
+
+class RoteiroTestesEstresse {
+  +main(args : String[]) : void
+}
+
+Produto <|-- ProdutoPerecivel
+Produto <|-- ProdutoLimpeza
+ProdutoRepository ..|> RepositorioProduto
+VendaRepository ..|> RepositorioVenda
+ItemCarrinho o-- Produto
+CarrinhoDeCompras *-- ItemCarrinho
+Venda *-- ItemCarrinho
+MenuConsole ..> RepositorioProduto
+MenuConsole ..> RepositorioVenda
+MenuConsole ..> RelatorioDescontosService
+MenuConsole ..> LeitorEntrada
+MenuConsole ..> ValidadorVenda
+SistemaCheckoutException <|-- ProdutoNaoEncontradoException
+SistemaCheckoutException <|-- QuantidadeInvalidaException
+SistemaCheckoutException <|-- EstoqueInsuficienteException
+RoteiroTestesEstresse ..> ValidadorVenda
+RoteiroTestesEstresse ..> CarrinhoDeCompras
+RoteiroTestesEstresse ..> ProdutoPerecivel
+RoteiroTestesEstresse ..> ProdutoLimpeza
+
+@enduml
